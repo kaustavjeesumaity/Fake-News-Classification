@@ -1,3 +1,2 @@
 venv
-*.ipynb
-*.csv
+.ipynb_checkpoints

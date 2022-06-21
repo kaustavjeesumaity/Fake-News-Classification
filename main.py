@@ -1,4 +1,4 @@
-from flask import Flask, flash, render_template
+from flask import Flask, flash, redirect, render_template,request, url_for
 from flask_wtf import FlaskForm
 from wtforms import TextAreaField,SubmitField
 from wtforms.validators import DataRequired
@@ -53,20 +53,24 @@ def predict(text):
     embed_text = embedding(preprocessed_text)
     padded_text = padding_with_zeros(embed_text)
     prediction = (model.predict(padded_text)>0.5).astype(int)
-    return prediction
+    prediction_txt = "Fake News" if prediction==1 else "True News" 
+    return prediction_txt
 @app.route('/',methods=['GET','POST'])
+# @app.route('/home',methods=['GET','POST'])
 def home():
     form = Form()
+    print(request.method)
+    title_msg = ''
+    pred_msg = ''
+    
     if form.validate_on_submit():
         title = form.title.data
         prediction = predict(title)
-        pred_msg = 'fake' if prediction[0][0]==1 else 'true'
-        if pred_msg == 'fake':
-            flash(f'Looks like news under Title : "{title}" is Fake.','danger')
-        else:
-            flash(f'Looks like news under Title : "{title}" is True.','success')
+        title_msg = f'Title : {title}'
+        pred_msg = f'Prediction: {prediction}'
 
-    return render_template('home.html',form=form)
+    form.title.data = ''
+    return render_template('home.html',form=form,title_msg=title_msg, pred_msg=pred_msg)
 
 if __name__ == "__main__":
     app.run(debug=True)
